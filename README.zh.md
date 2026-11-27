@@ -2,17 +2,17 @@
 
 > 中文 | [English](README.md)
 
-减少 DSH 长会话里重复发送的历史图片。插件保留当前和近期图片，为符合条件的旧图发送**只读附件引用、描述和可选缩略图**。需要核对小字、精确数字或坐标时，可以用 DSH 的 `read_image` 查看可访问的附件副本。
+**减少 DSH 带图长会话的首字延迟（TTFT）。**
 
-## 为什么
-
-长会话每一轮都会重发历史图片，请求体和视觉 token 随对话历史持续增长。插件只把图片内联到它首次出现的那一轮，之后换成只读路径、模型生成的描述，可选再配一张 320 px 缩略图 —— 模型仍记得图片，但不再为图片字节重复付费。
+会话拉长后，每次追问都可能重新发送之前的截图。插件保留近期图片，把符合条件的历史图换成只读路径、文字描述和可选缩略图，减少重复传输和处理图片的开销。需要核对小字、错误码或坐标时，可以用 `read_image` 重看可访问的附件。
 
 ## 安装
 
-在插件根目录打开 PowerShell，从本地目录安装。
+在 PowerShell 中克隆仓库，然后安装到本地 DSH profile。
 
 ```powershell
+git clone https://github.com/Casual05/dsh-image-reference.git
+Set-Location dsh-image-reference
 dsh plugin --profile web add (Get-Location).Path
 ```
 
@@ -70,14 +70,20 @@ dsh plugin --profile web add (Get-Location).Path
 
 已验证格式的字段和用于聊天的简短文本一起保存。模型返回普通文字时仍可作为说明使用。自定义 `caption.prompt` 使用自定义说明流程。升级到自动预设后，旧缓存可在同一描述路由和配置下继续使用，直到新版描述生成。
 
-## 成本与隐私
+## 性能与隐私
 
 - 每个附件和描述配置通常需要一次额外的视觉调用。指定另一 provider 时，图片也会交给该 provider。缩略图仍消耗视觉 token。
 - 图片从内联切换成引用时，服务端可能需要重建对应的前缀缓存。首字延迟收益依赖传输方式、缓存命中、模型和是否需要重新读图。
 - 默认状态文件位于 `~/.dsh/profiles/<profile>/image-reference/state.json`，其中的 OCR 和描述是明文。需要清除现有缓存时，请在关闭持久化前执行清空。关闭持久化后，重启进入仅内存模式。
 
-## 测试与兼容性
+## 兼容性与测试
 
-插件面向 DSH 0.2.x。已用本机 DSH 0.2.2-alpha.2 验证隔离安装与适配器链路。项目测试用 `node test/run.mjs` 或 `npm test` 启动。
+插件面向 DSH 0.2.x，已在 DSH `0.2.2-rc.5` 上验证可用。运行 `npm test` 可执行独立的项目测试。
 
 [原始设计草案](DESIGN.zh.md) 记录了插件的初始方案。
+
+## 开源许可
+
+本项目采用 [MIT 许可证](LICENSE)。
+
+如果它帮你缩短了带图长会话的等待，欢迎在 [GitHub](https://github.com/Casual05/dsh-image-reference) 点个 Star，帮助更多人找到这个插件。

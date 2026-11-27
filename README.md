@@ -2,17 +2,17 @@
 
 > [中文](README.zh.md) | English
 
-Reduce repeated historical image uploads in long DSH conversations. The plugin keeps recent images in the request and represents eligible older images with a read-only attachment reference, a generated description, and optionally a smaller thumbnail.
+**Reduce time to first token (TTFT) in image-heavy DeepSeek Harness chats.**
 
-## Why
-
-A long conversation resends every image on every turn, so request size and vision tokens keep growing with the history. This plugin inlines an image only on the turn it first appears, then swaps older ones for a read-only path, a model-written description, and optionally a 320 px thumbnail — the model keeps its memory of the image without paying for the bytes again.
+As a chat grows, follow-up requests can resend earlier screenshots. The plugin keeps recent images and replaces eligible older ones with a read-only path, a description, and an optional thumbnail. This reduces repeated image transfer and processing. Use `read_image` to check details when the attachment is accessible.
 
 ## Install
 
-Run this in PowerShell from the plugin directory.
+Clone the repository and install it from the local directory in PowerShell.
 
 ```powershell
+git clone https://github.com/Casual05/dsh-image-reference.git
+Set-Location dsh-image-reference
 dsh plugin --profile web add (Get-Location).Path
 ```
 
@@ -33,14 +33,20 @@ Restart DSH after installation or an update. Open **Settings → Plugins → dsh
 
 Descriptions may omit details or contain transcription errors. For exact details, use `read_image` when the attachment path, tool, and a vision route are available. The local file is DSH's normalized copy, which may have been resized or re-encoded.
 
-## Cost and privacy
+## Performance and privacy
 
 - A description generally takes one additional image call per attachment and description configuration. Selecting a different provider sends the image to that provider. Thumbnails still use visual tokens.
 - Prompt-cache behavior depends on the provider. End-to-end latency depends on image transport, cache hits, and follow-up tool calls.
 - The default state is `~/.dsh/profiles/<profile>/image-reference/state.json`. It can contain screenshot text in plaintext. Clear existing memory before switching off disk persistence if you want to remove the saved cache contents.
 
-## Validation
+## Compatibility and testing
 
-Run `node test/run.mjs` or `npm test`. This plugin targets DSH 0.2.x. Installation and adapter behavior were verified locally on DSH 0.2.2-alpha.2.
+This plugin targets DSH 0.2.x and has been tested on DSH `0.2.2-rc.5`. Run `npm test` for the standalone test suite.
 
 See the [original design draft](DESIGN.zh.md) in Chinese.
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+If this plugin makes your DSH chats more responsive, a star on [GitHub](https://github.com/Casual05/dsh-image-reference) helps others find it.

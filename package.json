@@ -1,7 +1,7 @@
 {
   "name": "dsh-image-reference",
   "version": "0.1.0",
-  "description": "Keep recent DSH images and replace eligible older images with a local reference, a description, and an optional thumbnail.",
+  "description": "Reduce time to first token (TTFT) in image-heavy DeepSeek Harness chats with lightweight references for older images.",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -12,6 +12,10 @@
     "attachments"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Casual05/dsh-image-reference.git"
+  },
   "type": "module",
   "main": "lib/index.js",
   "exports": {
