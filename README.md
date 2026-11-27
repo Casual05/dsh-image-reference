@@ -2,11 +2,13 @@
 
 > [中文](README.zh.md) | English
 
-Reduce repeated historical image uploads in long DSH conversations. The plugin keeps recent images in the request and represents eligible older images with a read-only attachment reference, a generated description, and optionally a smaller thumbnail.
+Cut the time to first token (TTFT) that historical images add to long DSH conversations. The plugin keeps recent images in the request and represents eligible older images with a read-only attachment reference, a generated description, and optionally a smaller thumbnail.
 
 ## Why
 
-A long conversation resends every image on every turn, so request size and vision tokens keep growing with the history. This plugin inlines an image only on the turn it first appears, then swaps older ones for a read-only path, a model-written description, and optionally a 320 px thumbnail — the model keeps its memory of the image without paying for the bytes again.
+DSH offloads an image only once a request exceeds its budget; every image that stays under it is re-inlined as base64 on **every** turn. Those bytes have to be uploaded and preprocessed into vision tokens by the provider, and image content often does not enter the prompt cache — so the wait before the first token is paid again on each turn. **That is why image-heavy conversations get a high TTFT on some models**, and the longer the chat, the worse it gets.
+
+This plugin inlines an image only on the turn it first appears, then swaps older ones for a read-only path, a model-written description, and optionally a 320 px thumbnail. The model keeps its memory of the image, but later requests no longer carry its bytes: requests get much smaller and TTFT stops growing with the number of images in history. How much you gain depends on transport, cache hits, and the model itself.
 
 ## Install
 

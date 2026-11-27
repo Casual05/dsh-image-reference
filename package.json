@@ -1,7 +1,7 @@
 {
   "name": "dsh-image-reference",
   "version": "0.1.0",
-  "description": "Keep recent DSH images and replace eligible older images with a local reference, a description, and an optional thumbnail.",
+  "description": "Keep recent DSH images and replace eligible older images with a local reference, a description, and an optional thumbnail, so later turns stop re-sending image bytes and TTFT no longer grows with the history.",
   "keywords": [
     "deepseek-harness",
     "dsh",
