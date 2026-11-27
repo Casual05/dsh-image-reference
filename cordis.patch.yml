@@ -1,0 +1,6 @@
+# dsh-image-reference 的 profile 层：由 package.json 的 dsh.bundle.patch 指向，
+# `dsh plugin add` 时自动挂载。只有这一行宿主行；不要再往 profile 的
+# cordis.patch.yml 手写同 id 的 insert（重复 id 会让试启动校验回滚）。
+- insert:
+    - id: image-reference
+      name: dsh-image-reference
