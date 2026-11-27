@@ -1,16 +1,16 @@
 # dsh-image-reference
 
-> [中文](README.zh.md) | English
+> 中文 | [English](README.en.md)
 
-**Reduce time to first token (TTFT) in image-heavy DeepSeek Harness chats.**
+**减少 DSH 带图长会话的首字延迟（TTFT）。**
 
-If this plugin makes your DSH chats more responsive, a star on [GitHub](https://github.com/Casual05/dsh-image-reference) helps others find it.
+如果它帮你缩短了带图长会话的等待，欢迎在 [GitHub](https://github.com/Casual05/dsh-image-reference) 点个 Star，帮助更多人找到这个插件。
 
-As a chat grows, follow-up requests can resend earlier screenshots. The plugin keeps recent images and replaces eligible older ones with a read-only path, a description, and an optional thumbnail. This reduces repeated image transfer and processing. Use `read_image` to check details when the attachment is accessible.
+会话拉长后，每次追问都可能重新发送之前的截图。插件保留近期图片，把符合条件的历史图换成只读路径、文字描述和可选缩略图，减少重复传输和处理图片的开销。需要核对小字、错误码或坐标时，可以用 `read_image` 重看可访问的附件。
 
-## Install
+## 安装
 
-Clone the repository and install it from the local directory in PowerShell.
+在 PowerShell 中克隆仓库，然后安装到本地 DSH profile。
 
 ```powershell
 git clone https://github.com/Casual05/dsh-image-reference.git
@@ -18,35 +18,72 @@ Set-Location dsh-image-reference
 dsh plugin --profile web add (Get-Location).Path
 ```
 
-Restart DSH after installation or an update. Open **Settings → Plugins → dsh-image-reference → Configure** to customize it. Use one of `dsh-image-reference` and `dsh-image-once` per profile since both wrap the provider adapters.
+安装或更新后重启 DSH。在 **设置 → 插件 → dsh-image-reference → 配置** 中调整行为。两款插件都会改写适配器请求，单个 profile 请选择 `dsh-image-reference` 或 `dsh-image-once`。
 
-## Behavior
+## 默认行为
 
-- The first image occurrence follows the normal DSH path. It becomes eligible for replacement after a successful stream on a route known to accept images. Failed and interrupted calls retain the original image for retries.
-- By default, the latest user turn and its tool images retain full images. For eligible older images with a readable attachment, descriptions and thumbnails are prepared in the background.
-- When background generation fails, eligible images can use a path or cached thumbnail. A recovered description is added when it is ready. Previously replaced images also keep using a path or thumbnail while descriptions are rebuilt. Images offloaded by DSH use text references.
-- Descriptions and thumbnails can be turned off independently. The settings card also controls recent-turn retention, disk persistence, and on-demand rebuilding of descriptions. Persistence and storage-location changes take effect on restart.
+1. 首次出现的图片交给 DSH 正常处理。路由明确支持图片、且请求成功结束后才记入发送记录，失败重试继续按原条件发送图片。
+2. 默认保留最近一轮用户消息及随后的工具图片。更早的图片须有可读的附件副本，且历史图片数达到阈值，才会进入替换流程。
+3. 描述和缩略图后台生成。首次替换通常等到替代内容就绪。生成失败时可先用已有小图或只读路径，描述恢复后会自动补上。
+4. DSH 原生已卸载的图片使用文本引用。缩略图对象缺失时优先使用已有描述，必要时保留可发送的原图。
 
-## Description presets
+图片描述可能漏读或误读。缩略图仅供浏览整体布局。只读路径指向 DSH 保存的规范化副本，可能已经缩放或重编码。重看还需要执行环境可访问该路径、提供 `read_image` 且模型支持图像。
 
-- **Auto** chooses a preset and extracts fields in the same background call. Select **Standard** or **Error screenshot** in the settings card to override it, or set `caption.preset` to `standard` or `error-screenshot` in YAML.
-- **Standard** captures image type, a brief summary, visible text, and uncertain details. **Error screenshot** captures the readable error, file, line, column, and related code lines. Exact fields that exceed the description budget are omitted as whole fields.
-- Validated structured fields are saved alongside the compact text used in future requests. A plain-text response can still serve as a description. A custom `caption.prompt` continues to control its own description flow.
+## 常用设置
 
-Descriptions may omit details or contain transcription errors. For exact details, use `read_image` when the attachment path, tool, and a vision route are available. The local file is DSH's normalized copy, which may have been resized or re-encoded.
+| 设置 | 默认值 | 作用 |
+|---|---|---|
+| 文字描述 | 开启 | 由视觉模型生成描述。默认跟随当前路由，可指定 provider 和模型。 |
+| 描述预设 | 自动识别 | 默认根据图片选择标准预设或报错截图，也可以手动指定。 |
+| 小缩略图 | 开启 | 尝试使用长边 320 px、至多 64 KiB 的缩略图，小于源图才使用。 |
+| 接管阈值 | 1 | 统计请求中未被 DSH 卸载的图片数，达到阈值后才替换合格的历史图。 |
+| 保留最近用户轮数 | 1 | 设为 0 可在成功记账且满足其他条件后尽早替换。 |
+| 保存记忆到磁盘 | 开启 | 与保存位置和自定义路径一样，重启 DSH 后生效。 |
+| 清除并按需重算描述 | — | 清除描述及其失败冷却。已替换的历史图先用可读路径或已有缩略图，图片再次参与成功请求后按需重算。 |
+| 清空记忆 | — | 清空插件账本与缓存，并取消插件正在处理的后台任务。 |
 
-## Performance and privacy
+也可以在 profile 的 `cordis.patch.yml` 中设置持久化、队列和模型参数。
 
-- A description generally takes one additional image call per attachment and description configuration. Selecting a different provider sends the image to that provider. Thumbnails still use visual tokens.
-- Prompt-cache behavior depends on the provider. End-to-end latency depends on image transport, cache hits, and follow-up tool calls.
-- The default state is `~/.dsh/profiles/<profile>/image-reference/state.json`. It can contain screenshot text in plaintext. Clear existing memory before switching off disk persistence if you want to remove the saved cache contents.
+```yaml
+- id: image-reference
+  config:
+    features:
+      keepRecentTurns: 1
+      minImages: 1
+    caption:
+      preset: auto
+      language: zh
+      maxChars: 400
+      maxQueue: 200
+    thumbnail:
+      longEdge: 320
+      maxQueue: 200
+      cooldownMs: 600000
+    state:
+      persist: true
+      scope: profile
+```
 
-## Compatibility and testing
+## 描述预设
 
-This plugin targets DSH 0.2.x and has been tested on DSH `0.2.2-rc.5`. Run `npm test` for the standalone test suite.
+- **标准预设**（`standard`）保留图片类型、画面概况、可见文字和待核对细节。
+- **报错截图**（`error-screenshot`）优先保留能看清的错误原文、文件、行列号和相关代码行。行号只在图中可辨认时记录。输出字符数不够时，过长的错误原文或代码行会整项省略，避免把半行当作完整原文。
+- **自动识别**（`auto`）在同一次后台请求中完成判断和提取。明显的错误输出、构建或测试失败、堆栈或编辑器诊断使用报错预设，其他图片使用标准预设。
 
-See the [original design draft](DESIGN.zh.md) in Chinese.
+已验证格式的字段和用于聊天的简短文本一起保存。模型返回普通文字时仍可作为说明使用。自定义 `caption.prompt` 使用自定义说明流程。升级到自动预设后，旧缓存可在同一描述路由和配置下继续使用，直到新版描述生成。
 
-## License
+## 性能与隐私
 
-Released under the [MIT License](LICENSE).
+- 每个附件和描述配置通常需要一次额外的视觉调用。指定另一 provider 时，图片也会交给该 provider。缩略图仍消耗视觉 token。
+- 图片从内联切换成引用时，服务端可能需要重建对应的前缀缓存。首字延迟收益依赖传输方式、缓存命中、模型和是否需要重新读图。
+- 默认状态文件位于 `~/.dsh/profiles/<profile>/image-reference/state.json`，其中的 OCR 和描述是明文。需要清除现有缓存时，请在关闭持久化前执行清空。关闭持久化后，重启进入仅内存模式。
+
+## 兼容性与测试
+
+插件面向 DSH 0.2.x，已在 DSH `0.2.2-rc.5` 上验证可用。运行 `npm test` 可执行独立的项目测试。
+
+[原始设计草案](DESIGN.zh.md) 记录了插件的初始方案。
+
+## 开源许可
+
+本项目采用 [MIT 许可证](LICENSE)。
