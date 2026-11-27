@@ -4,6 +4,8 @@
 
 **Reduce time to first token (TTFT) in image-heavy DeepSeek Harness chats.**
 
+If this plugin makes your DSH chats more responsive, a star on [GitHub](https://github.com/Casual05/dsh-image-reference) helps others find it.
+
 As a chat grows, follow-up requests can resend earlier screenshots. The plugin keeps recent images and replaces eligible older ones with a read-only path, a description, and an optional thumbnail. This reduces repeated image transfer and processing. Use `read_image` to check details when the attachment is accessible.
 
 ## Install
@@ -48,5 +50,3 @@ See the [original design draft](DESIGN.zh.md) in Chinese.
 ## License
 
 Released under the [MIT License](LICENSE).
-
-If this plugin makes your DSH chats more responsive, a star on [GitHub](https://github.com/Casual05/dsh-image-reference) helps others find it.

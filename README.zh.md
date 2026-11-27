@@ -4,6 +4,8 @@
 
 **减少 DSH 带图长会话的首字延迟（TTFT）。**
 
+如果它帮你缩短了带图长会话的等待，欢迎在 [GitHub](https://github.com/Casual05/dsh-image-reference) 点个 Star，帮助更多人找到这个插件。
+
 会话拉长后，每次追问都可能重新发送之前的截图。插件保留近期图片，把符合条件的历史图换成只读路径、文字描述和可选缩略图，减少重复传输和处理图片的开销。需要核对小字、错误码或坐标时，可以用 `read_image` 重看可访问的附件。
 
 ## 安装
@@ -85,5 +87,3 @@ dsh plugin --profile web add (Get-Location).Path
 ## 开源许可
 
 本项目采用 [MIT 许可证](LICENSE)。
-
-如果它帮你缩短了带图长会话的等待，欢迎在 [GitHub](https://github.com/Casual05/dsh-image-reference) 点个 Star，帮助更多人找到这个插件。
